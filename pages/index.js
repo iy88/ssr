@@ -33,6 +33,7 @@ class Home extends react.Component {
   async get(event) {
     event.preventDefault();
     this.setState({a:''});
+    this.setState({cityId: '', country: '', province: '', city: '', ISP: ''})
     if (this.state.ip !== '') {
       let find = this.state.history.find((item) => {
         return item.ip === this.state.ip
