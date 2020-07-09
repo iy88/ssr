@@ -5,12 +5,26 @@ import { withRouter } from 'next/router';
 function unique(arr) {
   return [...new Set(arr)];
 }
+function hash(key){
+  if (Array.prototype.reduce){
+    return Math.abs(key.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0));
+  }
+  let hash = 0;
+  if (key.length === 0) return hash;
+  for (let i = 0; i < key.length; i++) {
+    let character  = key.charCodeAt(i);
+    hash  = ((hash<<5)-hash)+character;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
 class Home extends react.Component {
   constructor(porps) {
     super(porps);
-    this.state = { ip: '', cityId: 'N/A', country: 'N/A', province: 'N/A', city: 'N/A', ISP: 'N/A', history: [] };
+    this.state = { ip: '', cityId: 'N/A', country: 'N/A', province: 'N/A', city: 'N/A', ISP: 'N/A', b:"",a:"",history: [] };
     this.handleInput = this.handleInput.bind(this);
     this.get = this.get.bind(this);
+    this.save = this.save.bind(this);
   }
   handleInput(event) {
     event.preventDefault();
@@ -18,6 +32,7 @@ class Home extends react.Component {
   }
   async get(event) {
     event.preventDefault();
+    this.setState({a:''});
     if (this.state.ip !== '') {
       let find = this.state.history.find((item) => {
         return item.ip === this.state.ip
@@ -41,6 +56,14 @@ class Home extends react.Component {
         }
       }
     }
+  }
+  save(event) {
+    event.preventDefault();
+    let res = ['<DOCTYPE html><html><head><meta charset="utf-8"><title>ip region</title></head><body>', `<h4>ip: ${this.state.ip}</h4><h4>country: ${this.state.country}</h4><h4>cityId: ${this.state.cityId}</h4><h4>city: ${this.state.city}</h4><h4>province: ${this.state.province}</h4><h4>ISP: ${this.state.ISP}</h4>`, '</body></html>'];
+    let url = URL.createObjectURL(new Blob(res,{type:''}));
+    this.setState({b:url},()=>{
+      this.setState({a:`<a href="${this.state.b}" download="ip-region-${hash(res.join(''))}.html">download</a>`})
+    });
   }
   componentDidMount() {
     this.state.history = JSON.parse(localStorage.getItem("history") || "[]");
@@ -74,6 +97,8 @@ class Home extends react.Component {
         <h4>city: {this.state.city}</h4>
         <h4>province: {this.state.province}</h4>
         <h4>ISP: {this.state.ISP}</h4>
+        <button type="button" onClick={this.save} dangerouslySetInnerHTML={{ __html: 'save result' }} />
+        <p dangerouslySetInnerHTML={{__html:this.state.a}}></p>
       </div>
     )
   }
